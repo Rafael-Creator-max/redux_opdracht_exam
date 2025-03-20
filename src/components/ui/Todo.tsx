@@ -1,17 +1,15 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
-import {
-  useUpdateTodoMutation,
-  useDeleteTodoMutation,
-} from "../../api/todoApi";
+import { useUpdateTodoMutation } from "../../api/todoApi";
 
 export interface TodoProps {
   id: string;
   text: string;
   completed: boolean;
-  category?: string; //  Now category is optional 
-  categories: { name: string; color: string }[]; //  List of all categories
-  description: string;
+  category?: string;
+  categories: { name: string; color: string }[];
+  description?: string;
+  onDelete: (id: string) => void;
 }
 
 const Todo: React.FC<TodoProps> = ({
@@ -21,58 +19,55 @@ const Todo: React.FC<TodoProps> = ({
   category,
   categories,
   description,
+  onDelete,
 }) => {
   const [updateTodo] = useUpdateTodoMutation();
-  const [deleteTodo] = useDeleteTodoMutation();
 
-  // Find the correct category object from the categories list
+  // Ensure category is always a valid object
   const matchedCategory = categories.find((cat) => cat.name === category) || {
     name: "Uncategorized",
     color: "gray",
   };
 
   return (
-    <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md flex justify-between items-center">
-      <div>
-        <h3
-          className={`text-lg font-semibold ${
-            completed ? "line-through text-gray-400" : ""
-          }`}
-        >
-          {text || "Untitled Todo"} 
-        </h3>
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          {description || "No description available"}
-        </p>
-        <Badge
-          className="mt-2"
-          style={{ backgroundColor: matchedCategory.color }}
-        >
-          {matchedCategory.name}
-        </Badge>
-      </div>
-      <div className="flex gap-2">
-        <input
-          type="checkbox"
-          checked={completed}
-          onChange={() =>
-            updateTodo({
-              id,
-              text,
-              category,
-              description,
-              completed: !completed,
-            })
-          }
-          className="cursor-pointer"
-        />
-        <button
-          onClick={() => deleteTodo(id)}
-          className="text-red-500 hover:text-red-700"
-        >
-          ❌
-        </button>
-      </div>
+    <div className="flex items-center justify-between p-3 bg-white shadow rounded-md mb-2">
+      {/*  Checkbox for toggling completed */}
+      <input
+        type="checkbox"
+        checked={completed}
+        onChange={() =>
+          updateTodo({
+            id,
+            text,
+            category,
+            description,
+            completed: !completed, //  Only toggle "completed"
+          })
+        }
+        className="cursor-pointer"
+      />
+
+      {/* Todo Text */}
+      <span
+        className={`flex-grow ${
+          completed ? "line-through text-gray-600" : "text-black font-medium"
+        }`}
+      >
+        {text || "Untitled Todo"} {/* Prevent empty text */}
+      </span>
+
+      {/* Category Badge (Now always has a valid value) */}
+      <Badge style={{ backgroundColor: matchedCategory.color }}>
+        {matchedCategory.name}
+      </Badge>
+
+      {/*  Delete Button (No e.preventDefault) */}
+      <button
+        onClick={() => onDelete(id)}
+        className="p-1 text-red-500 hover:text-red-700"
+      >
+        ❌
+      </button>
     </div>
   );
 };
