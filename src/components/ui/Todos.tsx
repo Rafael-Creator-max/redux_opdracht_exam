@@ -1,9 +1,13 @@
-// import React, { useState } from "react";
+// import React, { useState, useEffect } from "react";
+// import { useSelector, useDispatch } from "react-redux";
+// import { toast } from "sonner";
 // import {
-//   useGetTodosQuery,
-//   useGetCategoriesQuery,
-//   useAddTodoMutation,
-// } from "../../api/todoApi";
+//   fetchTodos,
+//   addTodo,
+//   deleteTodo,
+//   selectTodos,
+// } from "../../slices/todoslice";
+// import { RootState } from "../../store/store"; //  Import RootState for correct types
 // import Todo from "./Todo";
 
 // interface TodoType {
@@ -20,55 +24,64 @@
 // }
 
 // const Todos: React.FC = () => {
-//   const { data: todosRaw, error, isLoading } = useGetTodosQuery(undefined);
-//   const { data: categories } = useGetCategoriesQuery(undefined);
-//   const [addTodo] = useAddTodoMutation();
+//   const dispatch = useDispatch();
+//   const todos = useSelector((state: RootState) => selectTodos(state));
+//   const categories: CategoryType[] = [
+//     //  Dummy categories for now, should come from API
+//     { name: "Work", color: "#f59e0b" },
+//     { name: "Personal", color: "#ef4444" },
+//     { name: "Shopping", color: "#3b82f6" },
+//     { name: "Health", color: "#10b981" },
+//     { name: "Learning", color: "#8b5cf6" },
+//   ];
 
-//   //  Convert category string into full object
-//   const todos = todosRaw?.map((todo: TodoType) => ({
-//     ...todo,
-//     category: categories?.find(
-//       (cat: CategoryType) => cat.name === todo.category
-//     ) || {
-//       name: "Uncategorized",
-//       color: "gray",
-//     },
-//   }));
-
-//   // State for adding a new todo
 //   const [newTodo, setNewTodo] = useState("");
 //   const [selectedCategory, setSelectedCategory] = useState("");
 
-//   const handleAddTodo = async () => {
+//   // Fetch todos only once on load
+//   useEffect(() => {
+//     dispatch(fetchTodos() as any);
+//   }, [dispatch]);
+
+//   const handleAddTodo = () => {
 //     if (!newTodo) return;
 
-//     //  Find category object by name (to get color)
-//     const matchedCategory = categories?.find(
-//       (cat: CategoryType) => cat.name === selectedCategory
-//     ) || {
-//       name: "Uncategorized",
-//       color: "gray",
-//     };
-
-//     await addTodo({
+//     const newTodoItem: TodoType = {
 //       id: crypto.randomUUID(),
 //       text: newTodo,
 //       completed: false,
-//       category: matchedCategory.name,
-//       description: "",
+//       category: selectedCategory,
+//     };
+
+//     dispatch(addTodo(newTodoItem));
+//     toast.success(`Todo Added: "${newTodo}"`, { duration: 5000 });
+
+//     // Sync with API in the background
+//     fetch("http://localhost:3001/todos", {
+//       method: "POST",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify(newTodoItem),
 //     });
-//     refetch();
 
 //     setNewTodo("");
 //   };
 
-//   if (isLoading) return <p>Loading todos...</p>;
-//   if (error) return <p>Failed to load todos.</p>;
+//   const handleDelete = (id: string, todoText: string) => {
+//     dispatch(deleteTodo(id));
+//     toast.error(`Todo Deleted: "${todoText}"`, { duration: 5000000 });
+
+//     //  Sync with API in the background
+//     fetch(`http://localhost:3001/todos/${id}`, {
+//       method: "DELETE",
+//     });
+//   };
 
 //   return (
 //     <div className="max-w-2xl mx-auto">
-//       {/*  Add Todo Input & Button */}
-//       <div className="flex items-center gap-2 mb-4">
+//       <form
+//         onSubmit={(e) => e.preventDefault()}
+//         className="flex items-center gap-2 mb-4"
+//       >
 //         <input
 //           type="text"
 //           placeholder="Add a new todo..."
@@ -76,135 +89,20 @@
 //           onChange={(e) => setNewTodo(e.target.value)}
 //           className="flex-grow p-2 border rounded-md"
 //         />
-//         <select
-//           value={selectedCategory}
-//           onChange={(e) => setSelectedCategory(e.target.value)}
-//           className="p-2 border rounded-md"
-//         >
-//           <option value="">Select Category</option>
-//           {categories?.map((cat: CategoryType) => (
-//             <option key={cat.name} value={cat.name}>
-//               {cat.name}
-//             </option>
-//           ))}
-//         </select>
 //         <button
 //           onClick={handleAddTodo}
 //           className="p-2 bg-black text-white rounded-md"
 //         >
 //           ➕ Add
 //         </button>
-//       </div>
+//       </form>
 
-//       {/* ✅ Todo List */}
-//       {todos?.map((todo: TodoType) => (
-//         <Todo key={todo.id} {...todo} categories={categories || []} />
-//       ))}
-
-//       {/* ✅ Pagination & Stats */}
-//       <div className="flex justify-between mt-6 text-gray-600">
-//         <p>Total: {todos?.length} todos</p>
-//         <p>
-//           Active: {todos?.filter((t: TodoType) => !t.completed).length} todos •
-//           Completed: {todos?.filter((t: TodoType) => t.completed).length} todos
-//         </p>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Todos;
-// import React, { useState } from "react";
-// import {
-//   useGetTodosQuery,
-//   useGetCategoriesQuery,
-//   useAddTodoMutation,
-//   useDeleteTodoMutation, // ✅ Import delete mutation
-// } from "../../api/todoApi";
-// import Todo from "./Todo";
-
-// interface TodoType {
-//   id: string;
-//   text: string;
-//   completed: boolean;
-//   category?: string;
-//   description?: string;
-// }
-
-// const Todos: React.FC = () => {
-//   const { data: todos, isLoading, error } = useGetTodosQuery(undefined);
-//   const { data: categories } = useGetCategoriesQuery(undefined);
-//   const [addTodo] = useAddTodoMutation();
-//   const [deleteTodo] = useDeleteTodoMutation(); // ✅ Restore delete mutation
-
-//   const [newTodo, setNewTodo] = useState("");
-//   const [selectedCategory, setSelectedCategory] = useState("");
-
-//   // ✅ Fix handleAddTodo
-//   const handleAddTodo = async (event: React.FormEvent) => {
-//     event.preventDefault(); //  Stops form from refreshing the page why not workingggggg
-
-//     if (!newTodo) return;
-
-//     await addTodo({
-//       id: crypto.randomUUID(),
-//       text: newTodo,
-//       completed: false,
-//       category: selectedCategory,
-//       description: "",
-//     });
-
-//     setNewTodo("");
-//   };
-
-//   // ✅ Restore delete functionality
-//   const handleDelete = async (id: string) => {
-//     await deleteTodo(id);
-//   };
-
-//   if (isLoading) return <p>Loading todos...</p>;
-//   if (error) return <p>Failed to load todos.</p>;
-
-//   return (
-//     <div className="max-w-2xl mx-auto">
-//       {/* ✅ Add Todo Input & Button */}
-//       <div className="flex items-center gap-2 mb-4">
-//         <form onSubmit={handleAddTodo} className="flex items-center gap-2 mb-4">
-//           <input
-//             type="text"
-//             placeholder="Add a new todo..."
-//             value={newTodo}
-//             onChange={(e) => setNewTodo(e.target.value)}
-//             className="flex-grow p-2 border rounded-md"
-//           />
-//           <select
-//             value={selectedCategory}
-//             onChange={(e) => setSelectedCategory(e.target.value)}
-//             className="p-2 border rounded-md"
-//           >
-//             <option value="">Select Category</option>
-//             {categories?.map((cat: { name: string; color: string }) => (
-//               <option key={cat.name} value={cat.name}>
-//                 {cat.name}
-//               </option>
-//             ))}
-//           </select>
-//           <button
-//             onClick={handleAddTodo} // ✅ Pass function directly (React handles event automatically)
-//             className="p-2 bg-black text-white rounded-md"
-//           >
-//             ➕ Add
-//           </button>
-//         </form>
-//       </div>
-
-//       {/* ✅ Todo List */}
 //       {todos?.map((todo: TodoType) => (
 //         <Todo
 //           key={todo.id}
 //           {...todo}
-//           categories={categories || []}
-//           onDelete={handleDelete}
+//           categories={categories} //  Now passing categories correctly
+//           onDelete={() => handleDelete(todo.id, todo.text)}
 //         />
 //       ))}
 //     </div>
@@ -212,13 +110,17 @@
 // };
 
 // export default Todos;
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { toast } from "sonner";
 import {
-  useGetTodosQuery,
-  useGetCategoriesQuery,
-  useAddTodoMutation,
-  useDeleteTodoMutation,
-} from "../../api/todoApi";
+  fetchTodos,
+  addTodo,
+  deleteTodo,
+  selectTodos,
+} from "../../slices/todoslice";
+import { RootState } from "../../store/store"; // Import RootState for correct types
+import { useGetCategoriesQuery } from "../../api/todoApi"; //  Restore API Fetch
 import Todo from "./Todo";
 
 interface TodoType {
@@ -230,40 +132,59 @@ interface TodoType {
 }
 
 const Todos: React.FC = () => {
-  const { data: todos, isLoading, error } = useGetTodosQuery(undefined);
-  const { data: categories } = useGetCategoriesQuery(undefined);
-  const [addTodo] = useAddTodoMutation();
-  const [deleteTodo] = useDeleteTodoMutation();
+  const dispatch = useDispatch();
+  const todos = useSelector((state: RootState) => selectTodos(state));
+
+  //  Fetch categories from API
+  const { data: categories = [] } = useGetCategoriesQuery(undefined);
 
   const [newTodo, setNewTodo] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
 
-  const handleAddTodo = async (event: React.FormEvent) => {
-    event.preventDefault(); //  Stops form from refreshing the page i hope
+  //  Fetch todos only once on load
+  useEffect(() => {
+    dispatch(fetchTodos() as any);
+  }, [dispatch]);
 
+  const handleAddTodo = () => {
     if (!newTodo) return;
 
-    await addTodo({
+    const newTodoItem: TodoType = {
       id: crypto.randomUUID(),
       text: newTodo,
       completed: false,
       category: selectedCategory,
-      description: "",
+    };
+
+    dispatch(addTodo(newTodoItem));
+    toast.success(`Todo Added: "${newTodo}"`, { duration: 5000 });
+
+    //  Sync with API in the background
+    fetch("http://localhost:3001/todos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newTodoItem),
     });
 
     setNewTodo("");
   };
 
-  const handleDelete = async (id: string) => {
-    await deleteTodo(id);
-  };
+  const handleDelete = (id: string, todoText: string) => {
+    dispatch(deleteTodo(id));
+    toast.error(`Todo Deleted: "${todoText}"`, { duration: 5000 });
 
-  if (isLoading) return <p>Loading todos...</p>;
-  if (error) return <p>Failed to load todos.</p>;
+    //  Sync with API in the background
+    fetch(`http://localhost:3001/todos/${id}`, {
+      method: "DELETE",
+    });
+  };
 
   return (
     <div className="max-w-2xl mx-auto">
-      <form onSubmit={handleAddTodo} className="flex items-center gap-2 mb-4">
+      <form
+        onSubmit={(e) => e.preventDefault()}
+        className="flex items-center gap-2 mb-4"
+      >
         <input
           type="text"
           placeholder="Add a new todo..."
@@ -277,13 +198,16 @@ const Todos: React.FC = () => {
           className="p-2 border rounded-md"
         >
           <option value="">Select Category</option>
-          {categories?.map((cat: { name: string; color: string }) => (
+          {categories?.map((cat) => (
             <option key={cat.name} value={cat.name}>
               {cat.name}
             </option>
           ))}
         </select>
-        <button type="submit" className="p-2 bg-black text-white rounded-md">
+        <button
+          onClick={handleAddTodo}
+          className="p-2 bg-black text-white rounded-md"
+        >
           ➕ Add
         </button>
       </form>
@@ -292,8 +216,8 @@ const Todos: React.FC = () => {
         <Todo
           key={todo.id}
           {...todo}
-          categories={categories || []}
-          onDelete={handleDelete}
+          categories={categories} // ✅ Now categories are properly passed
+          onDelete={() => handleDelete(todo.id, todo.text)}
         />
       ))}
     </div>

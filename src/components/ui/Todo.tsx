@@ -1,7 +1,7 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { useUpdateTodoMutation } from "../../api/todoApi";
-
+import { toast } from "sonner"; 
 export interface TodoProps {
   id: string;
   text: string;
@@ -29,41 +29,58 @@ const Todo: React.FC<TodoProps> = ({
     color: "gray",
   };
 
+  //  Show notification when toggling todo
+  const handleToggle = async () => {
+    await updateTodo({
+      id,
+      text,
+      category,
+      description,
+      completed: !completed,
+    });
+
+    toast(`${text} is now ${completed ? "incomplete" : "done"}`, {
+      description: `You have updated this task.`,
+    });
+  };
+
   return (
     <div className="flex items-center justify-between p-3 bg-white shadow rounded-md mb-2">
-      {/*  Checkbox for toggling completed */}
+      {/* ✅ Checkbox for toggling completed */}
       <input
         type="checkbox"
         checked={completed}
-        onChange={() =>
-          updateTodo({
-            id,
-            text,
-            category,
-            description,
-            completed: !completed, //  Only toggle "completed"
-          })
-        }
+        onChange={handleToggle} // ✅ Added notification for toggle
         className="cursor-pointer"
       />
 
-      {/* Todo Text */}
+      {/* ✅ Todo Text */}
       <span
         className={`flex-grow ${
           completed ? "line-through text-gray-600" : "text-black font-medium"
         }`}
       >
-        {text || "Untitled Todo"} {/* Prevent empty text */}
+        {text || "Untitled Todo"}
       </span>
 
-      {/* Category Badge (Now always has a valid value) */}
+      {/* ✅ Category Badge (Now always has a valid value) */}
       <Badge style={{ backgroundColor: matchedCategory.color }}>
         {matchedCategory.name}
       </Badge>
 
-      {/*  Delete Button (No e.preventDefault) */}
+      {/* ✅ Delete Button (Now with a notification) */}
       <button
-        onClick={() => onDelete(id)}
+        onClick={() => {
+          onDelete(id);
+          toast(`${text} has been deleted`, {
+            description: `You have removed this task.`,
+            duration: 5000, // Optional duration
+            action: {
+              label: "Undo",
+              onClick: () => console.log("Undo delete action"), // Optional undo action
+            },
+          });
+        }}
         className="p-1 text-red-500 hover:text-red-700"
       >
         ❌
