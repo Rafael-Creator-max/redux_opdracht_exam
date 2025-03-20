@@ -1,20 +1,23 @@
 {
   "todos": [
     {
-      "id": "18",
       "text": "Call mom",
-      "completed": true,
-      "category": "Personal"
+      "category": "Personal",
+      "description": "No description available",
+      "completed": false,
+      "id": "18"
     },
     {
+      "description": "No description available",
       "completed": true,
       "id": "19"
     },
     {
-      "id": "39",
       "text": "30 minute workout",
+      "category": "Health",
+      "description": "No description available",
       "completed": false,
-      "category": "Health"
+      "id": "39"
     },
     {
       "completed": true,

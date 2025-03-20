@@ -8,7 +8,7 @@ export const todoApi = createApi({
       query: () => "/todos",
     }),
     getCategories: builder.query({
-      // ✅ Added getCategories
+      // Added getCategories
       query: () => "/categories",
     }),
     addTodo: builder.mutation({

@@ -9,7 +9,7 @@ export interface TodoProps {
   id: string;
   text: string;
   completed: boolean;
-  category?: string; //  Now category is optional (string)
+  category?: string; //  Now category is optional 
   categories: { name: string; color: string }[]; //  List of all categories
   description: string;
 }
@@ -39,10 +39,10 @@ const Todo: React.FC<TodoProps> = ({
             completed ? "line-through text-gray-400" : ""
           }`}
         >
-          {text || "Untitled Todo"} {/* ✅ Default value if text is missing */}
+          {text || "Untitled Todo"} 
         </h3>
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          {description || "No description available"} 
+          {description || "No description available"}
         </p>
         <Badge
           className="mt-2"
@@ -55,7 +55,15 @@ const Todo: React.FC<TodoProps> = ({
         <input
           type="checkbox"
           checked={completed}
-          onChange={() => updateTodo({ id, completed: !completed })}
+          onChange={() =>
+            updateTodo({
+              id,
+              text,
+              category,
+              description,
+              completed: !completed,
+            })
+          }
           className="cursor-pointer"
         />
         <button
