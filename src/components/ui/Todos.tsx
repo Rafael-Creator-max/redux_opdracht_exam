@@ -2,6 +2,14 @@ import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { toast } from "sonner";
 import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+
+import {
   fetchTodos,
   addTodo,
   deleteTodo,
@@ -27,7 +35,10 @@ const Todos: React.FC = () => {
   const { data: categories = [] } = useGetCategoriesQuery(undefined);
 
   const [newTodo, setNewTodo] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState(""); // Category filter state
+  const [selectedCategory, setSelectedCategory] = useState("all"); //  Category filter state
+  // //  Pagination states
+  // const [currentPage, setCurrentPage] = useState(1);
+  // const todosPerPage = 5;
 
   //  Fetch todos only once when the component loads
   useEffect(() => {
@@ -41,7 +52,7 @@ const Todos: React.FC = () => {
       id: crypto.randomUUID(),
       text: newTodo,
       completed: false,
-      category: selectedCategory,
+      category: selectedCategory === "all" ? undefined : selectedCategory, //  If "all", don't store category
     };
 
     dispatch(addTodo(newTodoItem));
@@ -55,7 +66,7 @@ const Todos: React.FC = () => {
     });
 
     setNewTodo(""); //  Reset input after adding
-    setSelectedCategory(""); //  Reset category selection
+    setSelectedCategory("all"); //  Reset category selection
   };
 
   const handleDelete = (id: string, todoText: string) => {
@@ -67,31 +78,36 @@ const Todos: React.FC = () => {
       method: "DELETE",
     });
   };
+  // filter logic
+  const filteredTodos =
+    selectedCategory === "all" || selectedCategory === ""
+      ? todos
+      : todos.filter((todo) => todo.category === selectedCategory);
 
-  //  Filter todos based on selected category
-  const filteredTodos = selectedCategory
-    ? todos.filter((todo) => todo.category === selectedCategory)
-    : todos;
-
+  
   return (
     <div className="max-w-2xl mx-auto">
-      {/*  Category Filter Dropdown */}
+      {/* Category Filter Dropdown (Replaced with ShadCN Select) */}
       <div className="flex gap-4 mb-4">
-        <select
+        <Select
+          onValueChange={(value) => setSelectedCategory(value)}
           value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
-          className="p-2 border rounded-md"
         >
-          <option value="">All Categories</option>
-          {categories.map((cat: { name: string }) => (
-            <option key={cat.name} value={cat.name}>
-              {cat.name}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className="w-[200px] border rounded-md p-2">
+            <SelectValue placeholder="Filter by Category" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="All">All Categories</SelectItem>
+            {categories.map((cat: { name: string }) => (
+              <SelectItem key={cat.name} value={cat.name}>
+                {cat.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      {/*  Todo Input Form */}
+      {/* Todo Input Form */}
       <form
         onSubmit={(e) => e.preventDefault()}
         className="flex items-center gap-2 mb-4"
@@ -103,18 +119,21 @@ const Todos: React.FC = () => {
           onChange={(e) => setNewTodo(e.target.value)}
           className="flex-grow p-2 border rounded-md"
         />
-        <select
+        <Select
+          onValueChange={(value) => setSelectedCategory(value)}
           value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
-          className="p-2 border rounded-md"
         >
-          <option value="">Select Category</option>
-          {categories.map((cat: { name: string }) => (
-            <option key={cat.name} value={cat.name}>
-              {cat.name}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className="w-[200px] border rounded-md p-2">
+            <SelectValue placeholder="Select Category" />
+          </SelectTrigger>
+          <SelectContent>
+            {categories.map((cat: { name: string }) => (
+              <SelectItem key={cat.name} value={cat.name}>
+                {cat.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <button
           onClick={handleAddTodo}
           className="p-2 bg-black text-white rounded-md"
@@ -123,7 +142,7 @@ const Todos: React.FC = () => {
         </button>
       </form>
 
-      {/* Display Filtered Todos */}
+      {/*  Display Filtered Todos */}
       {filteredTodos.map((todo: TodoType) => (
         <Todo
           key={todo.id}
@@ -133,7 +152,7 @@ const Todos: React.FC = () => {
         />
       ))}
 
-      {/* Stats Section */}
+      {/*  Stats Section */}
       <div className="flex items-center gap-x-6 mt-6 text-gray-600 border-t border-gray-300 pt-4">
         <p>
           Total: <strong className="text-white">{todos.length}</strong> todos
