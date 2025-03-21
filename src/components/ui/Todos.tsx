@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { toast } from "sonner";
@@ -67,6 +66,11 @@ const Todos: React.FC = () => {
       method: "DELETE",
     });
   };
+  const totalTodos = todos.length;
+  const completedTodos = todos.filter((t) => t.completed).length;
+  const activeTodos = totalTodos - completedTodos;
+  const completionPercentage =
+    totalTodos > 0 ? Math.round((completedTodos / totalTodos) * 100) : 0;
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -105,10 +109,26 @@ const Todos: React.FC = () => {
         <Todo
           key={todo.id}
           {...todo}
-          categories={categories} // ✅ Now categories are properly passed
+          categories={categories} //  Now categories are properly passed
           onDelete={() => handleDelete(todo.id, todo.text)}
         />
       ))}
+     
+      <div className="flex items-center gap-x-6">
+        <p>
+          Total: <strong className="text-white">{totalTodos}</strong> todos
+        </p>
+        <p>
+          Active: <strong className="text-blue-500">{activeTodos}</strong> todos
+        </p>
+        <p>
+          Completed:{" "}
+          <strong className="text-green-500">{completedTodos}</strong> todos
+        </p>
+        <p className="font-semibold text-white">
+          ✅ {completionPercentage}% completed
+        </p>
+      </div>
     </div>
   );
 };

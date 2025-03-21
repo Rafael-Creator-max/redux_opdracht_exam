@@ -1,21 +1,15 @@
 {
   "todos": [
     {
-      "id": "5218bf37-6248-43ab-8545-3689ccffce76",
-      "text": "dfdfdf",
-      "completed": true,
-      "category": ""
-    },
-    {
       "id": "9e1f5c90-68ba-4ffa-9e15-19468049cfb1",
       "text": "df",
-      "completed": false,
+      "completed": true,
       "category": "Personal"
     },
     {
       "id": "67bc3270-02a8-48c8-865d-3a01933c653f",
       "text": "dfs",
-      "completed": false,
+      "completed": true,
       "category": ""
     },
     {
@@ -25,10 +19,10 @@
       "category": "Personal"
     },
     {
-      "id": "36b69254-0fd0-4110-a821-1ad058e60d37",
-      "text": "dfdsf",
+      "id": "2c836a09-134f-46c0-a580-03b7c7206739",
+      "text": "test",
       "completed": false,
-      "category": "Learning"
+      "category": "Personal"
     }
   ],
   "categories": [
