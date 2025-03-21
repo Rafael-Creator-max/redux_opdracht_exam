@@ -7,8 +7,8 @@ import {
   deleteTodo,
   selectTodos,
 } from "../../slices/todoslice";
-import { RootState } from "../../store/store"; // Import RootState for correct types
-import { useGetCategoriesQuery } from "../../api/todoApi"; //  Restore API Fetch
+import { RootState } from "../../store/store";
+import { useGetCategoriesQuery } from "../../api/todoApi";
 import Todo from "./Todo";
 
 interface TodoType {
@@ -27,9 +27,9 @@ const Todos: React.FC = () => {
   const { data: categories = [] } = useGetCategoriesQuery(undefined);
 
   const [newTodo, setNewTodo] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState(""); // Category filter state
 
-  //  Fetch todos only once on load
+  //  Fetch todos only once when the component loads
   useEffect(() => {
     dispatch(fetchTodos() as any);
   }, [dispatch]);
@@ -54,7 +54,8 @@ const Todos: React.FC = () => {
       body: JSON.stringify(newTodoItem),
     });
 
-    setNewTodo("");
+    setNewTodo(""); //  Reset input after adding
+    setSelectedCategory(""); //  Reset category selection
   };
 
   const handleDelete = (id: string, todoText: string) => {
@@ -66,14 +67,31 @@ const Todos: React.FC = () => {
       method: "DELETE",
     });
   };
-  const totalTodos = todos.length;
-  const completedTodos = todos.filter((t) => t.completed).length;
-  const activeTodos = totalTodos - completedTodos;
-  const completionPercentage =
-    totalTodos > 0 ? Math.round((completedTodos / totalTodos) * 100) : 0;
+
+  //  Filter todos based on selected category
+  const filteredTodos = selectedCategory
+    ? todos.filter((todo) => todo.category === selectedCategory)
+    : todos;
 
   return (
     <div className="max-w-2xl mx-auto">
+      {/*  Category Filter Dropdown */}
+      <div className="flex gap-4 mb-4">
+        <select
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          className="p-2 border rounded-md"
+        >
+          <option value="">All Categories</option>
+          {categories.map((cat: { name: string }) => (
+            <option key={cat.name} value={cat.name}>
+              {cat.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/*  Todo Input Form */}
       <form
         onSubmit={(e) => e.preventDefault()}
         className="flex items-center gap-2 mb-4"
@@ -91,7 +109,7 @@ const Todos: React.FC = () => {
           className="p-2 border rounded-md"
         >
           <option value="">Select Category</option>
-          {categories?.map((cat) => (
+          {categories.map((cat: { name: string }) => (
             <option key={cat.name} value={cat.name}>
               {cat.name}
             </option>
@@ -105,28 +123,43 @@ const Todos: React.FC = () => {
         </button>
       </form>
 
-      {todos?.map((todo: TodoType) => (
+      {/* Display Filtered Todos */}
+      {filteredTodos.map((todo: TodoType) => (
         <Todo
           key={todo.id}
           {...todo}
-          categories={categories} //  Now categories are properly passed
+          categories={categories}
           onDelete={() => handleDelete(todo.id, todo.text)}
         />
       ))}
-     
-      <div className="flex items-center gap-x-6">
+
+      {/* Stats Section */}
+      <div className="flex items-center gap-x-6 mt-6 text-gray-600 border-t border-gray-300 pt-4">
         <p>
-          Total: <strong className="text-white">{totalTodos}</strong> todos
+          Total: <strong className="text-white">{todos.length}</strong> todos
         </p>
         <p>
-          Active: <strong className="text-blue-500">{activeTodos}</strong> todos
+          Active:{" "}
+          <strong className="text-blue-500">
+            {todos.filter((t) => !t.completed).length}
+          </strong>{" "}
+          todos
         </p>
         <p>
           Completed:{" "}
-          <strong className="text-green-500">{completedTodos}</strong> todos
+          <strong className="text-green-500">
+            {todos.filter((t) => t.completed).length}
+          </strong>{" "}
+          todos
         </p>
-        <p className="font-semibold text-white">
-          ✅ {completionPercentage}% completed
+        <p className="font-semibold">
+          ✅{" "}
+          {todos.length > 0
+            ? Math.round(
+                (todos.filter((t) => t.completed).length / todos.length) * 100
+              )
+            : 0}
+          % completed
         </p>
       </div>
     </div>

@@ -7,22 +7,28 @@
       "category": "Personal"
     },
     {
-      "id": "67bc3270-02a8-48c8-865d-3a01933c653f",
-      "text": "dfs",
-      "completed": true,
-      "category": ""
-    },
-    {
       "id": "4f4859a0-29ba-4566-9375-20fcc931916c",
       "text": "dfd",
-      "completed": false,
+      "completed": true,
       "category": "Personal"
     },
     {
       "id": "2c836a09-134f-46c0-a580-03b7c7206739",
       "text": "test",
-      "completed": false,
+      "completed": true,
       "category": "Personal"
+    },
+    {
+      "id": "e1e32b18-bca9-44d2-8973-7b903fde3b4e",
+      "text": "test",
+      "completed": false,
+      "category": "Health"
+    },
+    {
+      "id": "8dc95058-ce75-46a6-83e3-d6373170bc78",
+      "text": "test",
+      "completed": false,
+      "category": "Work"
     }
   ],
   "categories": [
