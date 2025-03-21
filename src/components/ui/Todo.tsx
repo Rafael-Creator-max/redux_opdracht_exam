@@ -80,7 +80,7 @@ const Todo: React.FC<TodoProps> = ({
         <Badge style={{ backgroundColor: matchedCategory.color }}>
           {matchedCategory.name}
         </Badge>
-        {/*  Delete Button (Now with a notification) */}
+        {/*  Delete Button  */}
         <button
           onClick={() => {
             onDelete(id);

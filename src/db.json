@@ -29,6 +29,12 @@
       "text": "test",
       "completed": false,
       "category": "Work"
+    },
+    {
+      "id": "cc8ca379-3e79-48e9-91d4-eba480f7ecfe",
+      "text": "test",
+      "completed": false,
+      "category": ""
     }
   ],
   "categories": [

@@ -31,16 +31,17 @@ const Todos: React.FC = () => {
   const dispatch = useDispatch();
   const todos = useSelector((state: RootState) => selectTodos(state));
 
-  //  Fetch categories from API
+  // Fetch categories from API
   const { data: categories = [] } = useGetCategoriesQuery(undefined);
 
   const [newTodo, setNewTodo] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all"); //  Category filter state
-  // //  Pagination states
-  // const [currentPage, setCurrentPage] = useState(1);
-  // const todosPerPage = 5;
+  const [selectedCategory, setSelectedCategory] = useState("all"); //  Default to "all"
 
-  //  Fetch todos only once when the component loads
+  //  Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const todosPerPage = 5; // ✅ Display 5 todos per page
+
+  //  Fetch todos only once on component mount
   useEffect(() => {
     dispatch(fetchTodos() as any);
   }, [dispatch]);
@@ -52,21 +53,21 @@ const Todos: React.FC = () => {
       id: crypto.randomUUID(),
       text: newTodo,
       completed: false,
-      category: selectedCategory === "all" ? undefined : selectedCategory, //  If "all", don't store category
+      category: selectedCategory === "all" ? undefined : selectedCategory,
     };
 
     dispatch(addTodo(newTodoItem));
     toast.success(`Todo Added: "${newTodo}"`, { duration: 5000 });
 
-    //  Sync with API in the background
+    // Sync with API in the background
     fetch("http://localhost:3001/todos", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newTodoItem),
     });
 
-    setNewTodo(""); //  Reset input after adding
-    setSelectedCategory("all"); //  Reset category selection
+    setNewTodo("");
+    setSelectedCategory("all");
   };
 
   const handleDelete = (id: string, todoText: string) => {
@@ -78,16 +79,29 @@ const Todos: React.FC = () => {
       method: "DELETE",
     });
   };
-  // filter logic
+
+  // Apply filtering first
   const filteredTodos =
     selectedCategory === "all" || selectedCategory === ""
       ? todos
       : todos.filter((todo) => todo.category === selectedCategory);
 
-  
+  // Apply pagination AFTER filtering
+  const indexOfLastTodo = currentPage * todosPerPage;
+  const indexOfFirstTodo = indexOfLastTodo - todosPerPage;
+  const paginatedTodos = filteredTodos.slice(indexOfFirstTodo, indexOfLastTodo);
+  const totalPages = Math.ceil(filteredTodos.length / todosPerPage);
+
+  // Stats calculations
+  const totalTodos = todos.length;
+  const completedTodos = todos.filter((t) => t.completed).length;
+  const activeTodos = totalTodos - completedTodos;
+  const completionPercentage =
+    totalTodos > 0 ? Math.round((completedTodos / totalTodos) * 100) : 0;
+
   return (
     <div className="max-w-2xl mx-auto">
-      {/* Category Filter Dropdown (Replaced with ShadCN Select) */}
+      {/* ShadCN Category Filter Dropdown */}
       <div className="flex gap-4 mb-4">
         <Select
           onValueChange={(value) => setSelectedCategory(value)}
@@ -97,7 +111,7 @@ const Todos: React.FC = () => {
             <SelectValue placeholder="Filter by Category" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="All">All Categories</SelectItem>
+            <SelectItem value="all">All Categories</SelectItem>
             {categories.map((cat: { name: string }) => (
               <SelectItem key={cat.name} value={cat.name}>
                 {cat.name}
@@ -142,8 +156,8 @@ const Todos: React.FC = () => {
         </button>
       </form>
 
-      {/*  Display Filtered Todos */}
-      {filteredTodos.map((todo: TodoType) => (
+      {/*  Display Paginated Todos */}
+      {paginatedTodos.map((todo: TodoType) => (
         <Todo
           key={todo.id}
           {...todo}
@@ -152,34 +166,48 @@ const Todos: React.FC = () => {
         />
       ))}
 
+      {/*  Pagination Controls */}
+      <div className="flex justify-between items-center mt-6 text-gray-600 border-t border-gray-300 pt-4">
+        <button
+          disabled={currentPage === 1}
+          onClick={() => setCurrentPage((prev) => prev - 1)}
+          className={`p-2 border rounded-md ${
+            currentPage === 1
+              ? "opacity-50 cursor-not-allowed"
+              : "hover:bg-gray-200"
+          }`}
+        >
+          ← Previous
+        </button>
+        <p>
+          Page <strong>{currentPage}</strong> of <strong>{totalPages}</strong>
+        </p>
+        <button
+          disabled={currentPage === totalPages}
+          onClick={() => setCurrentPage((prev) => prev + 1)}
+          className={`p-2 border rounded-md ${
+            currentPage === totalPages
+              ? "opacity-50 cursor-not-allowed"
+              : "hover:bg-gray-200"
+          }`}
+        >
+          Next →
+        </button>
+      </div>
+
       {/*  Stats Section */}
       <div className="flex items-center gap-x-6 mt-6 text-gray-600 border-t border-gray-300 pt-4">
         <p>
-          Total: <strong className="text-white">{todos.length}</strong> todos
+          Total: <strong className="text-white">{totalTodos}</strong> todos
         </p>
         <p>
-          Active:{" "}
-          <strong className="text-blue-500">
-            {todos.filter((t) => !t.completed).length}
-          </strong>{" "}
-          todos
+          Active: <strong className="text-blue-500">{activeTodos}</strong> todos
         </p>
         <p>
           Completed:{" "}
-          <strong className="text-green-500">
-            {todos.filter((t) => t.completed).length}
-          </strong>{" "}
-          todos
+          <strong className="text-green-500">{completedTodos}</strong> todos
         </p>
-        <p className="font-semibold">
-          ✅{" "}
-          {todos.length > 0
-            ? Math.round(
-                (todos.filter((t) => t.completed).length / todos.length) * 100
-              )
-            : 0}
-          % completed
-        </p>
+        <p className="font-semibold">✅ {completionPercentage}% completed</p>
       </div>
     </div>
   );
